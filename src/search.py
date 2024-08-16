@@ -3,6 +3,7 @@ from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
 from src.aor import AOR 
+from src.utils import get_oai_response
 
 
 
@@ -72,32 +73,21 @@ def search_aor_with_item(query_item: str, aor_list: List[AOR], top_k: int = 1, t
     return matching_aors
 
 
-def query_detail(aor, query): 
+def query_detail(aor, query):
     """ 
-    Calls for significant optimization on this functional here
-    --- This is the in-depth query functional
+    Naive implementation | TBD: structured RAG with cached dictionary
+    ICL > RAG given enough context @DeepMind Research
     """
-    # RAG over details over an aor
     text = aor.pdf_text 
     
-    # Initialize the sentence transformer model
-    model = SentenceTransformer('all-MiniLM-L6-v2')
+    QUERY_TEMPLATE = """
+    Given the following AOR:
+    {txt}
+    Answer the following question:
+    {query}
+    """
+    query_prompt = QUERY_TEMPLATE.format(txt=text, query=query)
     
-    # Encode the query and the AOR text
-    query_embedding = model.encode([query])
-    
-    # Split the text into sentences
-    sentences = text.split('.')
-    sentence_embeddings = model.encode(sentences)
-    
-    # Calculate cosine similarity between query and sentences
-    similarities = cosine_similarity(query_embedding, sentence_embeddings)[0]
-    
-    # Get the top 3 most relevant sentences
-    top_indices = similarities.argsort()[-3:][::-1]
-    relevant_sentences = [sentences[i].strip() for i in top_indices]
-    
-    # Construct the response
-    response = "\n".join(relevant_sentences)
+    response = get_oai_response(query_prompt)
     
     return response
