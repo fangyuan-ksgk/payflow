@@ -1,7 +1,8 @@
 import dataclasses
 from dataclasses import dataclass
-from typing import List
+from typing import List, Dict
 from datetime import date
+from dataclasses import field
 import glob 
 
 # Use case 1: how much left in the AOR xxx, what items are allowed, I want to claim xxx, can I do that?
@@ -16,6 +17,7 @@ class AOR:
     expiry_date: date
     pdf_text: str = ""
     pdf_path: str = ""
+    cached_dict: Dict[str, str] = field(default_factory=dict) # TBD: Cached retrieval results in dictionary format (description : content)
 
     @property 
     def remaining_budgets(self):
@@ -49,6 +51,7 @@ class AOR:
         aor_dict['no']= aor_dict['no'].replace("-","/")
         return AOR(**aor_dict)
     
+    @property
     def narrative(self): 
         # This is the light-rag, which always provide a simple narrative on the AOR pipeline, the more detailed RAG is over the pdf_text itself
         # TBD: a frequency-based caching mechanism to store (query, rag-result) pairs based on accepted responses (filtering mechanism)

@@ -73,6 +73,25 @@ def search_aor_with_item(query_item: str, aor_list: List[AOR], top_k: int = 1, t
     return matching_aors
 
 
+def query_rough(aor, query):
+    """ 
+    Query rough (structured) information of AOR 
+    """
+    text = aor.narrative
+    
+    QUERY_TEMPLATE = """
+    Given the following AOR:
+    {txt}
+    Answer the following question:
+    {query}
+    """
+    query_prompt = QUERY_TEMPLATE.format(txt=text, query=query)
+    
+    response = get_oai_response(query_prompt)
+    
+    return response
+
+
 def query_detail(aor, query):
     """ 
     Naive implementation | TBD: structured RAG with cached dictionary
