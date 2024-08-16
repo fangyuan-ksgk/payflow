@@ -69,3 +69,45 @@ def load_aors(aor_dir: str = "database/aor"):
         aor = AOR.load(aor_file)
         aor_list.append(aor)
     return aor_list 
+
+
+@dataclass 
+class Invoice:
+    no: str
+    date: str
+    currency: str  # ["Yuan", "Thai Baht", "Singapore Dollar", "US Dollar"]
+    items: List[str]
+    amounts: List[float]
+    invoice_text: str = ""
+    invoice_path: str = ""
+
+    @property 
+    def total_amount(self):
+        return sum(self.amounts)
+    
+    def save(self, invoice_dir: str = "database/invoice"):
+        import os
+        import json
+        
+        # Create the directory if it doesn't exist
+        os.makedirs(invoice_dir, exist_ok=True)
+        
+        self.no = self.no.replace("/","-")
+
+        # Create the file path
+        file_path = os.path.join(invoice_dir, f"{self.no}.json")
+        
+        # Convert the Invoice object to a dictionary
+        invoice_dict = dataclasses.asdict(self)
+        
+        # Write the dictionary to a JSON file
+        with open(file_path, 'w') as f:
+            json.dump(invoice_dict, f, indent=4)
+
+    def load(self, invoice_path: str):
+        import json
+        with open(invoice_path, "r") as f:
+            invoice_dict = json.load(f)
+        invoice_dict['no']= invoice_dict['no'].replace("-","/")
+        return Invoice(**invoice_dict)
+

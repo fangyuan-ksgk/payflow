@@ -1,0 +1,13 @@
+{
+    "no": "01141833",
+    "date": "2022-01-12",
+    "currency": "Yuan",
+    "items": [
+        "Brokerage service fee"
+    ],
+    "amounts": [
+        700.0
+    ],
+    "invoice_text": "Shanghai VAT Invoice\nInvoice number: 01141833\nDate: 2022-01-12\nPurchaser: Hongbai Trade (Shanghai) Co., Ltd.\nPurchaser tax identification number: 913100006643329130\nPurchaser address, phone: Room 789, 5th floor, Xu Hui District, Shanghai\nBank and account: China Construction Bank Shanghai Branch 31001512200050030149\nItem: Brokerage service fee\nModel: 1\nUnit price: 700.00\nAmount: 700.00\nTax rate: 6%\nTax amount: 42.00\nTotal (in words) 742.00\nSeller: Shanghai Jialing International Logistics Co., Ltd.\nSeller tax identification number: 91310109729486260K\nSeller address, phone: 908, North Chaxi Road, Shanghai, 1469555666",
+    "invoice_path": "database/invoice/invoice_chinese.png"
+}

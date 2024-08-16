@@ -7,13 +7,14 @@ import re
 import json
 import glob
 from pypdf import PdfReader
-from .prompt import PARSE_AOR_PROMPT
-from .aor import AOR
+from .prompt import PARSE_AOR_PROMPT, PARSE_INVOICE_PROMPT
+from .aor import AOR, Invoice
+from PIL import Image
 
 
 oai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-def get_oai_response(prompt, system_prompt="You are a helpful assistant", img=None, img_type=None):
+def get_oai_response(prompt, system_prompt="You are a helpful assistant", img=None, img_type="base64"):
     
     if isinstance(prompt, str):
         msg = [
@@ -113,9 +114,51 @@ def preprocess_aor(aor_dir: str = "database/aor"):
         # TBD: Skip preprocessing if things are already preprocessed
         pdf_txt = get_pdf_text(pdf_path)
         prompt = PARSE_AOR_PROMPT.format(pdf_txt=pdf_txt)
-        response = get_oai_response(prompt)
-        parsed_aor_dict = parse_json_response(response)
-        aor = AOR(**parsed_aor_dict)
-        aor.pdf_text = pdf_txt
-        aor.pdf_path = pdf_path
-        aor.save(aor_dir)
+        max_tries = 3
+        aor = None
+        while not aor and max_tries > 0:
+            response = get_oai_response(prompt)
+            parsed_aor_dict = parse_json_response(response)
+            try:
+                aor = AOR(**parsed_aor_dict)
+                aor.pdf_text = pdf_txt
+                aor.pdf_path = pdf_path
+                aor.save(aor_dir)
+            except:
+                max_tries -= 1
+                continue
+        
+        if not aor:
+            print(f"Failed to parse AOR: {pdf_path}")
+
+def preprocess_invoice(invoice_dir: str = "database/invoice"):
+    invoice_paths = [file for file in glob.glob(f"{invoice_dir}/*") if not file.endswith(".json")]
+
+    print("Preprocessing Invoices...")
+    for invoice_path in invoice_paths:
+        if invoice_path.endswith(".pdf"):
+            img = get_pdf_contents(invoice_path)[0]
+        elif invoice_path.endswith(".png") or invoice_path.endswith(".jpg") or invoice_path.endswith(".jpeg"):
+            with Image.open(invoice_path) as img_raw:
+                buffered = io.BytesIO()
+                img_raw.save(buffered, format="PNG")
+                img = base64.b64encode(buffered.getvalue()).decode('utf-8')
+        else:
+            raise ValueError("Unknown file format")
+        
+        max_tries = 3
+        invoice = None
+        while not invoice and max_tries > 0:
+            response = get_oai_response(PARSE_INVOICE_PROMPT, img=img, img_type="base64")
+            parsed_invoice_dict = parse_json_response(response)
+            try:
+                invoice = Invoice(**parsed_invoice_dict)
+            except:
+                max_tries -= 1
+                continue
+        
+        if invoice:
+            invoice.invoice_path = invoice_path
+            invoice.save(invoice_dir)
+        else:
+            print(f"Failed to parse invoice: {invoice_path}")
