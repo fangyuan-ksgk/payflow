@@ -6,23 +6,6 @@ from src.aor import AOR, load_aors
 from src.utils import get_oai_response, parse_json_response
 from dataclasses import dataclass, field
 
-FUNCTION_CALL_PROMPT = """
-Based on the user's query, determine which function should be called and provide the appropriate query.
-Output your response as a JSON object with the following structure:
-{{
-    "function_name": "<name of the function to call>",
-    "query": "<query to pass to the function>"
-}}
-
-Available functions:
-1. search_aor_with_item: Searches for AORs based on a specific item or keyword.
-2. search_aor_with_no: Searches for an AOR using its unique identification number.
-3. query_detail: Performs a detailed query on a specific AOR, accessing its full text content.
-4. query_rough: Executes a quick query on an AOR using a concise summary of its information.
-
-User query: {user_query}
-"""
-
 
 def search_aor_with_no(query_item: str, aor_list: List[AOR]):
     """ 
@@ -121,6 +104,7 @@ def query_detail(aor, query):
     {txt}
     Answer the following question:
     {query}
+    Keep your answer concise and to the point.
     """
     query_prompt = QUERY_TEMPLATE.format(txt=text, query=query)
     
@@ -134,8 +118,15 @@ class Memory:
     
     aor_list: List[AOR] = field(default_factory=list)
     all_aors: List[AOR] = field(default_factory=load_aors)
+    messages: List[str] = field(default_factory=list)
+
+    @property
+    def narrative(self):
+        if len(self.aor_list)==0:
+            return ""
+        return self.aor_list[0].narrative
     
-    def reset(self, aor_list):
+    def reset(self, aor_list = []):
         self.aor_list = aor_list
         
     def search_aor_with_item(self, query_item: str):
@@ -156,8 +147,21 @@ class Memory:
         aor = self.aor_list[0]
         return query_rough(aor, query)
     
+    def update_user_response(self, response, temp = False):
+        if temp:
+            return self.messages + [{"role": "user", "content": response}]
+        else:
+            self.messages.append({"role": "user", "content": response})
+            return self.messages
     
-FUNCTION_CALL_PROMPT = """
+    def update_agent_response(self, response, temp = False):
+        if temp:
+            return self.messages + [{"role": "assistant", "content": response}]
+        else:
+            self.messages.append({"role": "assistant", "content": response})
+    
+    
+INITIAL_SEARCH_PROMPT = """
 Based on the user's query, determine which function should be called and provide the appropriate query.
 Output your response as a JSON object with the following structure:
 {{
@@ -168,23 +172,56 @@ Output your response as a JSON object with the following structure:
 Available functions:
 1. search_aor_with_item: Searches for AORs based on a specific item or keyword.
 2. search_aor_with_no: Searches for an AOR using its unique identification number.
-3. query_detail: Performs a detailed query on a specific AOR, accessing its full text content.
-4. query_rough: Executes a quick query on an AOR using a concise summary of its information.
+
+User query: {user_query}
+"""
+
+CONTINUE_SEARCH_PROMPT = """
+Based on the user's query and the retrieved AOR which may or may not be relevant, determine which function should be called and provide the appropriate query.
+Output your response as a JSON object with the following structure:
+{{
+    "function_name": "<name of the function to call>",
+    "query": "<query to pass to the function>"
+}}
+
+Available functions:
+1. search_aor_with_item: Searches for another AOR based on a specific item or keyword.
+2. search_aor_with_no: Searches for another AOR using its unique identification number.
+3. query_detail: Performs a detailed query on current AOR, accessing its full text content.
+4. direct_answer: Provide your answer to the query base on current information.
+
+Retrieved AOR: {aor_narrative}
+
+User query: {user_query}
+"""
+
+DIRECT_ANSWER_PROMPT = """ 
+Base on the retrieved AOR, provide the direct answer to the user query
+
+Retrieved AOR: {aor_narrative}
 
 User query: {user_query}
 """
 
 
-def query_memory(user_query, memory: Memory):
+def query_memory_single(user_query, memory: Memory) -> tuple[str, Memory, bool]:
     """ 
     Query response will be conduced together with external Memory state
+    Return : 
+    -- info_str: String
+    -- memory: Memory
+    -- bool: Terminate
     """
 
     # Call Response 
-    # Missing a logic here to determine whether to limit option to searching within retrieved AORs 
-    user_query = "Find AORs related to hardware"
-    call_prompt = FUNCTION_CALL_PROMPT.format(user_query=user_query)
-    response = get_oai_response(call_prompt)
+    if memory.narrative:
+        call_prompt = CONTINUE_SEARCH_PROMPT.format(
+            aor_narrative=memory.narrative, user_query=user_query
+        )
+    else:
+        call_prompt = INITIAL_SEARCH_PROMPT.format(user_query=user_query)
+
+    response = get_oai_response(memory.update_user_response(call_prompt, temp=True)) # Shove historical information into the memory (temporarily)
     response_dict = parse_json_response(response)
         
     # Extract function name and query
@@ -195,13 +232,26 @@ def query_memory(user_query, memory: Memory):
     # Call the appropriate function based on the response
     if function_name == "search_aor_with_item":
         search_str = memory.search_aor_with_item(query)
-        return search_str, memory
+        return search_str, memory, False
     elif function_name == "search_aor_with_no":
         search_str = memory.search_aor_with_no(query)
-        return search_str, memory
+        return search_str, memory, False
     elif function_name == "query_detail":
-        return memory.query_detail(query), memory
-    elif function_name == "query_rough":
-        return memory.query_rough(query), memory
+        return memory.query_detail(user_query), memory, True # ICL answer should take user_query directly
+    elif function_name == "direct_answer": # Direct answer should have reset the memory state ? maybe NOT !
+        print("Direct Answer")
+        # response_str = get_oai_response(memory.update_user_response(user_query, temp=True))
+        return query, memory, True
     else:
         return "Invalid function name"
+    
+
+def query_memory(query, memory: Memory):
+    terminate = False
+    while not terminate:
+        info_str, memory, terminate = query_memory_single(query, memory)
+        if not terminate:
+            print(f"Retrived Information: {info_str}")
+        else:
+            print(f"Final Answer: {info_str}")
+    return info_str, memory
