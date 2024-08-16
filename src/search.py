@@ -181,6 +181,7 @@ def query_memory(user_query, memory: Memory):
     """
 
     # Call Response 
+    # Missing a logic here to determine whether to limit option to searching within retrieved AORs 
     user_query = "Find AORs related to hardware"
     call_prompt = FUNCTION_CALL_PROMPT.format(user_query=user_query)
     response = get_oai_response(call_prompt)
