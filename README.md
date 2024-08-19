@@ -1,4 +1,4 @@
-![logo-light](https://github.com/user-attachments/assets/288d59a1-b0dd-4351-8598-7747a75cd126)
+![image](https://github.com/user-attachments/assets/6fd8494e-dbed-4d9f-9697-dd6a9df58f3b)
 
 Handling on claiming process with AORs & Invoices.
 
