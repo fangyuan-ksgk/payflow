@@ -2,7 +2,9 @@ import streamlit as st
 from src.agent import RagAgent 
 from PIL import Image
 
-agent = RagAgent()
+# Initialize RagAgent only once
+if 'agent' not in st.session_state:
+    st.session_state.agent = RagAgent()
 
 # Logo Image Path
 logo_path = "./assets/logo-light.png"
@@ -51,7 +53,7 @@ def main():
         st.session_state.messages.append({"role": "user", "content": prompt})
 
         # Process the message using the RagAgent
-        agent_response = agent.chat(prompt)
+        agent_response = st.session_state.agent.chat(prompt)
 
         # Display assistant response in chat message container
         with chat_col:
@@ -61,19 +63,20 @@ def main():
         st.session_state.messages.append({"role": "assistant", "content": agent_response})
 
         # Update the invoice narrative in the session state
-        st.session_state.invoice_narrative = agent.memory.invoice_narrative
+        st.session_state.invoice_narrative = st.session_state.agent.memory.invoice_narrative
 
     with sidebar_col:
         # Sidebar for invoice and AOR images
-        if agent.memory.invoice_image:
-            st.subheader(f"Retreived Invoice")
-            st.image(agent.memory.invoice_image, width=300)  # Adjust width as needed
+        if st.session_state.agent.memory.invoice_image:
+            st.subheader("Retrieved Invoice")
+            st.image(st.session_state.agent.memory.invoice_image, width=300)  # Adjust width as needed
             st.markdown(st.session_state.invoice_narrative)
 
-        if agent.memory.aor_image:
-            st.subheader(f"Retrieved AOR")
-            st.image(agent.memory.aor_image, width=300)  # Adjust width as needed
-            st.markdown(agent.memory.narrative)
+        # Ensure AOR section is always displayed, regardless of invoice presence
+        st.subheader("Retrieved AOR")
+        if st.session_state.agent.memory.aor_image:
+            st.image(st.session_state.agent.memory.aor_image, width=300)  # Adjust width as needed
+            st.markdown(st.session_state.agent.memory.narrative)
 
 if __name__ == "__main__":
     main()

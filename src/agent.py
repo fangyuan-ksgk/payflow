@@ -2,6 +2,7 @@ from .search import query_memory, Memory
 
 class RagAgent:
     def __init__(self):
+        print("------- Initializing Agent --------")
         self.memory = Memory()
 
     def chat(self, user_message):

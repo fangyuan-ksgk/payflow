@@ -87,7 +87,6 @@ def search_aor_with_item(query_item: str, aor_list: List[AOR], top_k: int = 1, t
         top_indices = list(set(top_indices + item_top_indices))
 
         matching_aors = [aor_list[i] for i in top_indices]
-
     return matching_aors
 
 
@@ -234,6 +233,8 @@ class Memory:
     
     def reset(self, aor_list = [], invoice_list = []):
         self.aor_list = aor_list
+        if not self.aor_list:
+            print("----------- Resetting AOR list to empty -----------")
         self.invoice_list = invoice_list
         
     def search_aor_with_item(self, query_item: str):
@@ -250,6 +251,7 @@ class Memory:
         aor_list = search_aor_with_no(query_no, self.all_aors)
         if aor_list:
             self.reset(aor_list = aor_list, invoice_list = self.invoice_list)
+        print("-------- **** ------- After search aor with no, AOR list: ", self.aor_list)
         self.last_call.append("search_aor")
         if aor_list:
             return f"Found AOR{aor_list[0].no} related to the query number {query_no}"
@@ -629,7 +631,11 @@ def query_memory_single(user_query, memory: Memory) -> tuple[str, Memory, bool]:
             invoice_narrative=memory.invoice_narrative, aor_narrative=memory.narrative, user_query=user_query
         )
         response_str = get_oai_response(memory.update_user_response(direct_prompt, temp=True), system_prompt=SYSTEM_PROMPT)
-        thought_str, answer_str = parse_thought_answer(response_str)        
+        thought_str, answer_str = parse_thought_answer(response_str)
+        print_str = f"""Question: {direct_prompt}
+        Thought: {thought_str}
+        Answer: {answer_str}"""        
+        print(print_str)
         return answer_str, memory, True
 
 def query_memory(query, memory: Memory):
