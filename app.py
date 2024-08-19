@@ -1,4 +1,5 @@
 import chainlit as cl
+import asyncio
 from src.agent import RagAgent 
 agent = RagAgent()
 
@@ -26,7 +27,6 @@ async def main(message: cl.Message):
 
     # Process the message using the RagAgent
     agent_response = agent.chat(user_message)
-
+    
     # Send the agent's response back to the user
-    response_message = cl.Message(content=agent_response)
-    await response_message.send()
+    await cl.Message(content=agent_response).send()
