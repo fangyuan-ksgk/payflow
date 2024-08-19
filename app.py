@@ -38,7 +38,7 @@ def main():
 
         # Display chat messages from history on app rerun
         for message in st.session_state.messages:
-            with st.chat_message(message["role"]):
+            with st.chat_message(message["role"], avatar=user_icon if message["role"] == "user" else agent_icon):
                 st.markdown(message["content"])
 
     # Chat input - outside of any column
@@ -55,8 +55,7 @@ def main():
 
         # Display assistant response in chat message container
         with chat_col:
-            
-            with st.chat_message("Assistant", avatar=agent_icon):
+            with st.chat_message("assistant", avatar=agent_icon):
                 st.markdown(agent_response)
         # Add assistant response to chat history
         st.session_state.messages.append({"role": "assistant", "content": agent_response})
