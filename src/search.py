@@ -238,7 +238,8 @@ class Memory:
         
     def search_aor_with_item(self, query_item: str):
         aor_list = search_aor_with_item(query_item, self.all_aors)
-        self.reset(aor_list = aor_list, invoice_list = self.invoice_list)
+        if aor_list:
+            self.reset(aor_list = aor_list, invoice_list = self.invoice_list)
         self.last_call.append("search_aor")
         if aor_list:
             return f"Found AOR{aor_list[0].no} related to the item {query_item}"
@@ -247,7 +248,8 @@ class Memory:
     
     def search_aor_with_no(self, query_no: str):
         aor_list = search_aor_with_no(query_no, self.all_aors)
-        self.reset(aor_list = aor_list, invoice_list = self.invoice_list)
+        if aor_list:
+            self.reset(aor_list = aor_list, invoice_list = self.invoice_list)
         self.last_call.append("search_aor")
         if aor_list:
             return f"Found AOR{aor_list[0].no} related to the query number {query_no}"
@@ -256,7 +258,8 @@ class Memory:
     
     def search_invoice_with_item(self, query_item: str):
         invoice_list = search_invoice_with_item(query_item, self.all_invoices)
-        self.reset(aor_list = self.aor_list, invoice_list = invoice_list)
+        if invoice_list:
+            self.reset(aor_list = self.aor_list, invoice_list = invoice_list)
         self.last_call.append("search_invoice")
         if invoice_list:
             return f"Found Invoice{invoice_list[0].no} related to the item {query_item}"
@@ -265,7 +268,8 @@ class Memory:
     
     def search_invoice_with_no(self, query_no: str):
         invoice_list = search_invoice_with_no(query_no, self.all_invoices)
-        self.reset(aor_list = self.aor_list, invoice_list = invoice_list)
+        if invoice_list:
+            self.reset(aor_list = self.aor_list, invoice_list = invoice_list)
         self.last_call.append("search_invoice")
         if invoice_list:
             return f"Found Invoice{invoice_list[0].no} related to the query number {query_no}"
