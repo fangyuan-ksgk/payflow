@@ -5,7 +5,12 @@ from PIL import Image
 agent = RagAgent()
 
 # Logo Image Path
-logo_path = "./assets/logo.png"
+logo_path = "./assets/logo-light.png"
+agent_icon_path = "./assets/flow-agent.png"
+user_icon_path = "./assets/user-icon.png"
+
+agent_icon = Image.open(agent_icon_path)
+user_icon = Image.open(user_icon_path)
 
 def main():
     st.set_page_config(layout="wide")
@@ -15,13 +20,13 @@ def main():
         st.session_state.invoice_narrative = ""
 
     # Display logo
-    col1, col2 = st.columns([1, 6])  # Adjusted column ratio to move content left
+    col1, col2 = st.columns([1, 4])  # Adjusted column ratio to move content left
     with col1:
         logo = Image.open(logo_path)
-        st.image(logo, width=120)  # Slightly reduced logo size
+        st.image(logo, width=240)  # Slightly reduced logo size
     with col2:
-        st.title("PayFlow")
-    st.markdown("---")  # Draws a horizontal line below the title and image
+        st.title("Your personal finance assistant")
+    # st.markdown("---")  # Draws a horizontal line below the title and image
 
     # Create two columns: one for the chat interface and one for the sidebar content
     chat_col, sidebar_col = st.columns([3, 1])
@@ -40,7 +45,8 @@ def main():
     if prompt := st.chat_input("How can I help you?"):
         # Display user message in chat message container
         with chat_col:
-            st.chat_message("user").markdown(prompt)
+            with st.chat_message("user", avatar=user_icon):
+                st.markdown(prompt)
         # Add user message to chat history
         st.session_state.messages.append({"role": "user", "content": prompt})
 
@@ -49,7 +55,8 @@ def main():
 
         # Display assistant response in chat message container
         with chat_col:
-            with st.chat_message("assistant"):
+            
+            with st.chat_message("Assistant", avatar=agent_icon):
                 st.markdown(agent_response)
         # Add assistant response to chat history
         st.session_state.messages.append({"role": "assistant", "content": agent_response})
