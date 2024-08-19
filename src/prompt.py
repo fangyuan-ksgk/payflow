@@ -18,6 +18,7 @@ PARSE_INVOICE_PROMPT = """Please analyze the invoice image and provide the follo
     "no": "invoice number",
     "date": "YYYY-MM-DD",
     "currency": "currency used (Yuan, Thai Baht, Singapore Dollar, or US Dollar)",
+    "seller": "name of the seller", // translate to English if it's not already in English
     "items": ["list of items or services on the invoice"], // translate to English if it's not already in English
     "amounts": [0.0, 0.0, ...],  // list of corresponding amounts for each item
     "invoice_text": "full text content of the invoice" // translate to English if it's not already in English

@@ -76,10 +76,21 @@ class Invoice:
     no: str
     date: str
     currency: str  # ["Yuan", "Thai Baht", "Singapore Dollar", "US Dollar"]
+    seller: str
     items: List[str]
     amounts: List[float]
     invoice_text: str = ""
     invoice_path: str = ""
+    
+    @property
+    def narrative(self):
+        item_amount_str = ""
+        for (item, amount) in zip(self.items, self.amounts):
+            item_amount_str += f"{item}: {amount} {self.currency}\n"
+        narrative_str = f"Invoice no. {self.no}\nDate: {self.date}\nSeller: {self.seller}\nCurrency: {self.currency}\n{item_amount_str}Total Amount: {self.total_amount} {self.currency}"
+        if self.invoice_path:
+            narrative_str += f"\nInvoice Path: {self.invoice_path}"
+        return narrative_str
 
     @property 
     def total_amount(self):
@@ -104,10 +115,19 @@ class Invoice:
         with open(file_path, 'w') as f:
             json.dump(invoice_dict, f, indent=4)
 
-    def load(self, invoice_path: str):
+    @classmethod
+    def load(cls, invoice_path: str):
         import json
         with open(invoice_path, "r") as f:
             invoice_dict = json.load(f)
         invoice_dict['no']= invoice_dict['no'].replace("-","/")
         return Invoice(**invoice_dict)
-
+    
+    
+def load_invoices(invoice_dir: str = "database/invoice"):
+    invoice_files = glob.glob(f"{invoice_dir}/*.json")
+    invoice_list = []
+    for invoice_file in invoice_files:
+        invoice = Invoice.load(invoice_file)
+        invoice_list.append(invoice)
+    return invoice_list 

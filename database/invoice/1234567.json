@@ -2,17 +2,18 @@
     "no": "1234567",
     "date": "2024-08-15",
     "currency": "Thai Baht",
+    "seller": "Temus",
     "items": [
-        "Telecommunications service fee",
-        "Bank statement fee (statement and annual billing)",
-        "Membership fee for publication and journal",
-        "Service fee",
-        "Antigen and PCR test kit",
-        "Annual gym membership card",
-        "Office equipment and furniture purchase",
-        "Business medicine and treatment service",
-        "Printing service",
-        "Express document delivery"
+        "Telecommunications fees",
+        "Banking fees (annual statement)",
+        "Membership fees for journals and publications",
+        "Services fees",
+        "Antigen and PCR test kits",
+        "Annual sport club membership",
+        "Purchase of office machinery and equipment",
+        "Specialized business services",
+        "Card printing",
+        "Courier services"
     ],
     "amounts": [
         424361.0,
@@ -26,6 +27,6 @@
         699.0,
         1158.0
     ],
-    "invoice_text": "Invoice\nCompany Name: Temus\nAddress: Pasir Panjang\nInvoice No: 1234567\nInvoice Date: 15 Aug 2024\n\nItems\nTelecommunications service fee: 424,361.00\nBank statement fee (statement and annual billing): 1,103.00\nMembership fee for publication and journal: 947.00\nService fee: 981.00\nAntigen and PCR test kit: 611.00\nAnnual gym membership card: 1,184.00\nOffice equipment and furniture purchase: 194.00\nBusiness medicine and treatment service: 1,343.00\nPrinting service: 699.00\nExpress document delivery: 1,158.00\nSubtotal: 432,581.00\nVAT 12%: 51,909.72\nTotal: 484,490.72\n\nPayment Terms: NET 30\nPayment Method: Cheque\nDue Date: 15 Sep 2024",
+    "invoice_text": "Invoice\nCompany Name: Temus\nAddress: Pasir Panjang\nInvoice Number: 1234567\nInvoice Date: 15 Aug 2024\n\nItems\nTelecommunications fees: 424,361.00\nBanking fees (annual statement): 1,103.00\nMembership fees for journals and publications: 947.00\nServices fees: 981.00\nAntigen and PCR test kits: 611.00\nAnnual sport club membership: 1,184.00\nPurchase of office machinery and equipment: 194.00\nSpecialized business services: 1,343.00\nCard printing: 699.00\nCourier services: 1,158.00\n\nSubtotal: 432,581.00\nVAT (12%): 51,909.72\nTotal: 484,490.72\n\nPayment Terms: NET 30\nPayment Method: Cheque\nDue Date: 15 Sep 2024",
     "invoice_path": "database/invoice/invoice_thai.pdf"
 }

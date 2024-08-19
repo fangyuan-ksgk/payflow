@@ -2,13 +2,14 @@
     "no": "01141833",
     "date": "2022-01-12",
     "currency": "Yuan",
+    "seller": "Hongken Trading (Shanghai) Co., Ltd.",
     "items": [
-        "Agency Service Fee",
-        "Miscellaneous Fee"
+        "Agency service fee",
+        "Inspection fee"
     ],
     "amounts": [
         700.0
     ],
-    "invoice_text": "Shanghai Incremental Value Tax Special Invoice\nBuyer: Hongbai Trading (Shanghai) Co., Ltd.\nTaxpayer Identification Number: 913100006643329130\nAddress, Phone: 789 Room 506, Changle Road, Xuhui District, Shanghai 021-64435190\nOpening Bank and Account: Bank of China Co., Ltd Shanghai Xuhui Branch 31001512200005003149\nGoods Taxable Services Name: Agency Service, Miscellaneous Fee\nSpecification Model\nUnit: 1\nQuantity: 1\nUnit Price: 700.00\nAmount: 700.00\nTax Rate: 6%\nTax Amount: 42.00\nAmount in Words: Seven Hundred Forty-Two\nSeller: Shanghai Meijia International Logistics Co., Ltd.\nTaxpayer Identification Number: 91310109729486260K\nAddress, Phone: 908 Room 146 Changning Road, Shanghai 021-65955666\nOpening Bank and Account: Bank of Shanghai Monastery Prefecture Branch 62045860099842444\nReviewer: \u5f20\u7965\u695a\nIssuer: \u6731\u7433",
+    "invoice_text": "Shanghai Value Added Tax Special Invoice\nBuyer: Shanghai Wenjian International Logistics Co., Ltd.\nTaxpayer Identification No.: 913101009729486260K\nAddress and Phone: Room 908, No. 469 Xinjinqiao Road, Shanghai 021-64453190\nBank and Account: China Construction Bank Shanghai Branch 31001512200050030149\nItems: Agency service fee, Inspection fee\nUnit: 1, Unit Price: 700.00, Amount: 700.00, Tax Rate: 6%, Tax: 42.00\nTotal Amount including Tax: 742.00\nIssuer: Zhu Lin",
     "invoice_path": "database/invoice/invoice_chinese.png"
 }
