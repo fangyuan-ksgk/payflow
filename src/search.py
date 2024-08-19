@@ -348,9 +348,11 @@ Available functions:
 2. search_invoice_with_no: Searches for another invoice using its unique identification number. Only use this if current invoice is not relevant.
 3. query_detail: Performs a detailed query on current AOR, accessing its full text content.
 4. query_invoice_detail: Performs a detailed query on current invoice, accessing its full text content.
-5. direct_answer: Provide your answer to the query base on current information.
+5. direct_answer: Provide your answer to the query base on current information. Use this when other functions are not relevant.
 
 Retrieved AOR: {aor_narrative}
+
+Retrieved Invoice: {invoice_narrative}
 
 User query: {user_query}
 """
@@ -403,6 +405,8 @@ Available functions:
 2. search_invoice_with_no: Searches for an invoice using its unique identification number.
 3. direct_answer: Provide your answer to the query base on current information.
 
+Retrieved AOR: {aor_narrative}
+
 User query: {user_query}
 """
 
@@ -420,6 +424,8 @@ Available functions:
 3. query_detail: Performs a detailed query on current AOR, accessing its full text content.
 4. query_invoice_detail: Performs a detailed query on current invoice, accessing its full text content.
 5. direct_answer: Provide your answer to the query base on current information.
+
+Retrieved AOR: {aor_narrative}
 
 Retrieved Invoice: {invoice_narrative}
 
@@ -481,76 +487,30 @@ Available functions:
 User query: {user_query}
 """
 
-CONTINUE_QUERY_PROMPT = """
-Based on the user's query and the retrieved AOR and Invoice which may or may not be relevant, determine which function should be called and provide the appropriate query.
+DIRECT_ANSWER_PROMPT = """
+Provide your answer to the query base on current information.
+
 Output your response as a JSON object with the following structure:
 {{
-    "function_name": "<name of the function to call>",
-    "query": "<query to pass to the function>"
+    "function_name": "direct_answer",
+    "query": "your response to the user query"
 }}
 
-Available functions:
-1. query_detail: Performs a detailed query on current AOR, accessing its full text content.
-2. query_invoice_detail: Performs a detailed query on current invoice, accessing its full text content.
-3. direct_answer: Provide your answer to the query base on current information.
+User query: {user_query}
+"""
+
+DIRECT_ANSWER_TEMPLATE = """ 
+Base on what you've found, provide your answer to the user query. Do you make up information, mention you did not find relevant information if the provided information is not relevant.
 
 Retrieved Invoice: {invoice_narrative}
 
 Retrieved AOR: {aor_narrative}
 
 User query: {user_query}
-"""
 
-CONTINUE_QUERY_PROMPT_NO_INVOICE = """
-Based on the user's query and the retrieved AOR which may or may not be relevant, determine which function should be called and provide the appropriate query.
-Output your response as a JSON object with the following structure:
-{{
-    "function_name": "<name of the function to call>",
-    "query": "<query to pass to the function>"
-}}
-
-Available functions:
-1. query_detail: Performs a detailed query on current AOR, accessing its full text content.
-2. direct_answer: Provide your answer to the query base on current information.
-
-Retrieved AOR: {aor_narrative}
-
-User query: {user_query}
-"""
-
-CONTINUE_QUERY_PROMPT_NO_AOR = """
-Based on the user's query and the retrieved Invoice which may or may not be relevant, determine which function should be called and provide the appropriate query.
-Output your response as a JSON object with the following structure:
-{{
-    "function_name": "<name of the function to call>",
-    "query": "<query to pass to the function>"
-}}
-
-Available functions:
-1. query_invoice_detail: Performs a detailed query on current invoice, accessing its full text content.
-2. direct_answer: Provide your answer to the query base on current information.
-
-Retrieved Invoice: {invoice_narrative}
-
-User query: {user_query}
-"""
-
-DIRECT_ANSWER_PROMPT = """ 
-Based on the user's query and the retrieved Invoice which may or may not be relevant, determine which function should be called and provide the appropriate query.
-Output your response as a JSON object with the following structure:
-{{
-    "function_name": "<name of the function to call>",
-    "query": "<query to pass to the function>"
-}}
-
-Available functions:
-1. direct_answer: Provide your answer to the query base on current information.
-
-Retrieved Invoice: {invoice_narrative}
-
-Retrieved AOR: {aor_narrative}
-
-User query: {user_query}
+Provide your thought and answer. For instance: 
+Thought: xxx
+Answer: xxx
 """
 
 
@@ -607,6 +567,17 @@ def route_query(user_query, memory: Memory, first_query: bool) -> str:
             return DIRECT_ANSWER_PROMPT.format(
                 invoice_narrative=memory.invoice_narrative, aor_narrative=memory.narrative, user_query=user_query
             )
+            
+            
+def parse_thought_answer(response_str):
+    """
+    Parse the thought and answer from the response string
+    """
+    thought_str = response_str.split("Thought:")[1].split("Answer:")[0].strip()
+    answer_str = response_str.split("Answer:")[1].strip()
+    if not answer_str:
+        return "", response_str
+    return thought_str, answer_str
 
 
 def query_memory_single(user_query, memory: Memory) -> tuple[str, Memory, bool]:
@@ -647,64 +618,15 @@ def query_memory_single(user_query, memory: Memory) -> tuple[str, Memory, bool]:
         return memory.query_detail(user_query), memory, True # ICL answer should take user_query directly
     elif function_name == "query_invoice_detail":
         return memory.query_invoice_detail(user_query), memory, True # ICL answer should take user_query directly
-    elif function_name == "direct_answer": # Direct answer should have reset the memory state ? maybe NOT !
-        print("Direct Answer")
-        # response_str = get_oai_response(memory.update_user_response(user_query, temp=True))
-        return query, memory, True
+    # elif function_name == "direct_answer": # Direct answer should have reset the memory state ? maybe NOT !
     else:
-        return "Invalid function name"
-    
-
-def query_memory_continue(user_query, memory: Memory) -> tuple[str, Memory, bool]:
-    """ 
-    Query response will be conduced together with external Memory state
-    Return : 
-    -- info_str: String
-    -- memory: Memory
-    -- bool: Terminate
-    """
-
-    # Call Response 
-    if memory.narrative:
-        call_prompt = CONTINUE_SEARCH_PROMPT.format(
-            aor_narrative=memory.narrative, invoice_narrative=memory.invoice_narrative, user_query=user_query
+        print("Direct Answer")
+        direct_prompt = DIRECT_ANSWER_TEMPLATE.format(
+            invoice_narrative=memory.invoice_narrative, aor_narrative=memory.narrative, user_query=user_query
         )
-    else:
-        call_prompt = INITIAL_SEARCH_PROMPT.format(user_query=user_query)
-
-    response = get_oai_response(memory.update_user_response(call_prompt, temp=True), system_prompt=SYSTEM_PROMPT) # Shove historical information into the memory (temporarily)
-    response_dict = parse_json_response(response)
-        
-    # Extract function name and query
-    function_name = response_dict['function_name']
-    query = response_dict['query']
-    
-    print("Calling Function: ", function_name, " | Query: ", query)
-    
-    # Call the appropriate function based on the response
-    if function_name == "search_aor_with_item":
-        search_str = memory.search_aor_with_item(query)
-        return search_str, memory, False
-    elif function_name == "search_aor_with_no":
-        search_str = memory.search_aor_with_no(query)
-        return search_str, memory, False
-    elif function_name == "search_invoice_with_item":
-        search_str = memory.search_invoice_with_item(query)
-        return search_str, memory, False
-    elif function_name == "search_invoice_with_no":
-        search_str = memory.search_invoice_with_no(query)
-        return search_str, memory, False
-    elif function_name == "query_detail":
-        return memory.query_detail(user_query), memory, True # ICL answer should take user_query directly
-    elif function_name == "query_invoice_detail":
-        return memory.query_invoice_detail(user_query), memory, True # ICL answer should take user_query directly
-    elif function_name == "direct_answer": # Direct answer should have reset the memory state ? maybe NOT !
-        print("Direct Answer")
-        # response_str = get_oai_response(memory.update_user_response(user_query, temp=True))
-        return query, memory, True
-    else:
-        return "Invalid function name"
-    
+        response_str = get_oai_response(memory.update_user_response(direct_prompt, temp=True), system_prompt=SYSTEM_PROMPT)
+        thought_str, answer_str = parse_thought_answer(response_str)        
+        return answer_str, memory, True
 
 def query_memory(query, memory: Memory):
     terminate = False

@@ -10,37 +10,37 @@ logo_path = "./assets/logo.png"
 def main():
     st.set_page_config(layout="wide")
 
+    # Initialize session state for invoice narrative
+    if "invoice_narrative" not in st.session_state:
+        st.session_state.invoice_narrative = ""
+
     # Display logo
-    logo = Image.open(logo_path)
-    st.image(logo, width=200)
+    col1, col2 = st.columns([1, 6])  # Adjusted column ratio to move content left
+    with col1:
+        logo = Image.open(logo_path)
+        st.image(logo, width=120)  # Slightly reduced logo size
+    with col2:
+        st.title("PayFlow")
+    st.markdown("---")  # Draws a horizontal line below the title and image
 
-    st.title("Admin Agent")
+    # Create two columns: one for the chat interface and one for the sidebar content
+    chat_col, sidebar_col = st.columns([3, 1])
 
-    # Sidebar for invoice and AOR images
-    with st.sidebar:
-        if agent.memory.invoice_image:
-            st.subheader("Invoice")
-            st.image(agent.memory.invoice_image, use_column_width=True)
-            st.markdown(agent.memory.invoice_narrative)
+    with chat_col:
+        # Initialize chat history
+        if "messages" not in st.session_state:
+            st.session_state.messages = []
 
-        if agent.memory.aor_image:
-            st.subheader("AOR")
-            st.image(agent.memory.aor_image, use_column_width=True)
-            st.markdown(agent.memory.narrative)
+        # Display chat messages from history on app rerun
+        for message in st.session_state.messages:
+            with st.chat_message(message["role"]):
+                st.markdown(message["content"])
 
-    # Initialize chat history
-    if "messages" not in st.session_state:
-        st.session_state.messages = []
-
-    # Display chat messages from history on app rerun
-    for message in st.session_state.messages:
-        with st.chat_message(message["role"]):
-            st.markdown(message["content"])
-
-    # React to user input
-    if prompt := st.chat_input("What is your question?"):
+    # Chat input - outside of any column
+    if prompt := st.chat_input("How can I help you?"):
         # Display user message in chat message container
-        st.chat_message("user").markdown(prompt)
+        with chat_col:
+            st.chat_message("user").markdown(prompt)
         # Add user message to chat history
         st.session_state.messages.append({"role": "user", "content": prompt})
 
@@ -48,10 +48,26 @@ def main():
         agent_response = agent.chat(prompt)
 
         # Display assistant response in chat message container
-        with st.chat_message("assistant"):
-            st.markdown(agent_response)
+        with chat_col:
+            with st.chat_message("assistant"):
+                st.markdown(agent_response)
         # Add assistant response to chat history
         st.session_state.messages.append({"role": "assistant", "content": agent_response})
+
+        # Update the invoice narrative in the session state
+        st.session_state.invoice_narrative = agent.memory.invoice_narrative
+
+    with sidebar_col:
+        # Sidebar for invoice and AOR images
+        if agent.memory.invoice_image:
+            st.subheader(f"Retreived Invoice")
+            st.image(agent.memory.invoice_image, width=300)  # Adjust width as needed
+            st.markdown(st.session_state.invoice_narrative)
+
+        if agent.memory.aor_image:
+            st.subheader(f"Retrieved AOR")
+            st.image(agent.memory.aor_image, width=300)  # Adjust width as needed
+            st.markdown(agent.memory.narrative)
 
 if __name__ == "__main__":
     main()
