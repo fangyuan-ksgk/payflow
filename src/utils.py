@@ -10,6 +10,8 @@ from pypdf import PdfReader
 from .prompt import PARSE_AOR_PROMPT, PARSE_INVOICE_PROMPT
 from .aor import AOR, Invoice
 from PIL import Image
+import email
+from email import policy
 
 
 oai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
@@ -111,14 +113,54 @@ def parse_json_response(content):
     
     return json_data
 
+def read_eml(file_path):
+    with open(file_path, 'rb') as file:
+        msg = email.message_from_binary_file(file, policy=policy.default)
+    
+    # Extract basic information
+    sender = msg['From']
+    recipient = msg['To']
+    subject = msg['Subject']
+    date = msg['Date']
+
+    # Get the email body
+    if msg.is_multipart():
+        for part in msg.iter_parts():
+            if part.get_content_type() == 'text/plain':
+                body = part.get_content()
+                break
+    else:
+        body = msg.get_content()
+
+    # Get attachments
+    attachments = []
+    for part in msg.iter_attachments():
+        attachments.append(part.get_filename())
+
+    return {
+        'sender': sender,
+        'recipient': recipient,
+        'subject': subject,
+        'date': date,
+        'body': body,
+        'attachments': attachments
+    }
+
 
 def preprocess_aor(aor_dir: str = "database/aor"):
     pdf_paths = glob.glob(f"{aor_dir}/*.pdf")
-
+    eml_paths = glob.glob(f"{aor_dir}/*.eml")
     print("Preprocessing AORs...")
-    for pdf_path in pdf_paths:
+    for file_path in pdf_paths + eml_paths:
         # TBD: Skip preprocessing if things are already preprocessed
-        pdf_txt = get_pdf_text(pdf_path)
+        if file_path.endswith(".pdf"):
+            pdf_txt = get_pdf_text(file_path)
+        elif file_path.endswith(".eml"):
+            email_data = read_eml(file_path)
+            pdf_txt = email_data.get('body')
+        else:
+            raise ValueError("Unknown file format")
+
         prompt = PARSE_AOR_PROMPT.format(pdf_txt=pdf_txt)
         max_tries = 3
         aor = None
@@ -128,15 +170,19 @@ def preprocess_aor(aor_dir: str = "database/aor"):
             try:
                 aor = AOR(**parsed_aor_dict)
                 aor.pdf_text = pdf_txt
-                aor.pdf_path = pdf_path
+                aor.pdf_path = file_path
                 aor.save(aor_dir)
             except:
                 max_tries -= 1
                 continue
         
         if not aor:
-            print(f"Failed to parse AOR: {pdf_path}")
+            print(f"Failed to parse AOR: {file_path}")
             
+
+
+
+
 
 def file_to_img(file_path):
     if file_path.endswith(".pdf"):
@@ -150,6 +196,7 @@ def file_to_img(file_path):
     else:
         raise ValueError("Unknown file format")
     return img
+
 
 def preprocess_invoice(invoice_dir: str = "database/invoice"):
     invoice_paths = [file for file in glob.glob(f"{invoice_dir}/*") if not file.endswith(".json")]
@@ -182,3 +229,4 @@ def preprocess_invoice(invoice_dir: str = "database/invoice"):
             invoice.save(invoice_dir)
         else:
             print(f"Failed to parse invoice: {invoice_path}")
+

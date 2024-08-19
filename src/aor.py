@@ -4,12 +4,8 @@ from typing import List, Dict
 from datetime import date
 from dataclasses import field
 import glob 
-
-# Use case 1: how much left in the AOR xxx, what items are allowed, I want to claim xxx, can I do that?
-# Use case 2: I have this invoice, can you help me check whether it fits into AOR xxx ?
-
+from PIL import Image, ImageDraw, ImageFont
 from pdf2image import convert_from_path
-from PIL import Image
 import io
 
 def pdf_to_img(pdf_file, first_page=1, last_page=1):
@@ -20,7 +16,8 @@ def pdf_to_img(pdf_file, first_page=1, last_page=1):
 def file_to_img(file_path):
     if file_path.endswith(".pdf"):
         img = pdf_to_img(file_path)
-        
+    elif file_path.endswith(".eml"):
+        img = None 
     elif file_path.endswith((".png", ".jpg", ".jpeg")):
         with Image.open(file_path) as img_raw:
             buffered = io.BytesIO()
@@ -29,6 +26,61 @@ def file_to_img(file_path):
     else:
         raise ValueError("Unknown file format")
     return img
+
+def render_aor_image(aor):
+    # Create a new image with a white background
+    img = Image.new('RGB', (800, 600), color='white')
+
+    # Create a drawing object
+    draw = ImageDraw.Draw(img)
+
+    # Define font
+    font = ImageFont.load_default().font_variant(size=20)
+
+    # Draw AOR details
+    y_offset = 50
+    draw.text((50, y_offset), f"AOR No: {aor.no}", fill='black', font=font)
+    y_offset += 30
+    # Split description into multiple lines if it's too long
+    description_words = aor.description.split()
+    description_lines = []
+    current_line = ""
+    for word in description_words:
+        if draw.textlength(current_line + " " + word, font=font) < 500:
+            current_line += " " + word if current_line else word
+        else:
+            description_lines.append(current_line)
+            current_line = word
+    if current_line:
+        description_lines.append(current_line)
+
+    # Draw description lines
+    for line in description_lines:
+        draw.text((50, y_offset), f"Description: {line}" if line == description_lines[0] else line, fill='black', font=font)
+        y_offset += 30
+    draw.text((50, y_offset), f"Expiry Date: {aor.expiry_date}", fill='black', font=font)
+    y_offset += 50
+
+    # Draw items and budgets
+    for item, budget in zip(aor.items, aor.budgets):
+        item_text = f"{item}"
+        budget_text = f"${budget:.2f}"
+        
+        # Draw item (left-aligned)
+        draw.text((50, y_offset), item_text, fill='black', font=font, align="left")
+        
+        # Draw budget (right-aligned)
+        budget_width = draw.textlength(budget_text, font=font)
+        draw.text((750 - budget_width, y_offset), budget_text, fill='black', font=font, align="right")
+        
+        y_offset += 30
+
+    # Save the image to a bytes buffer
+    img_buffer = io.BytesIO()
+    img.save(img_buffer, format='PNG')
+    img_buffer.seek(0)
+    return Image.open(img_buffer)
+
 
 @dataclass
 class AOR:
@@ -47,7 +99,10 @@ class AOR:
     
     @property
     def image(self):
-        return file_to_img(self.pdf_path)
+        if self.pdf_path.endswith(".eml"):
+            return render_aor_image(self)
+        else:
+            return file_to_img(self.pdf_path)
     
     def save(self, aor_dir: str = "database/aor"):
         import os
