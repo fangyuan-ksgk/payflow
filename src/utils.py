@@ -66,6 +66,12 @@ def get_pdf_contents(pdf_file, first_page=1, last_page=1):
         
     return pdf_base64_images
 
+
+def pdf_to_img(pdf_file, first_page=1, last_page=1):
+    # Convert the first page of the PDF to an image
+    images = convert_from_path(pdf_file, first_page=first_page, last_page=last_page)        
+    return images[0]
+
 def get_pdf_text(pdf_path: str) -> str:
     pdf_text = ""
     reader = PdfReader(pdf_path)
@@ -130,6 +136,20 @@ def preprocess_aor(aor_dir: str = "database/aor"):
         
         if not aor:
             print(f"Failed to parse AOR: {pdf_path}")
+            
+
+def file_to_img(file_path):
+    if file_path.endswith(".pdf"):
+        img = pdf_to_img(file_path)
+        
+    elif file_path.endswith((".png", ".jpg", ".jpeg")):
+        with Image.open(file_path) as img_raw:
+            buffered = io.BytesIO()
+            img_raw.save(buffered, format="PNG")
+            img = buffered.getvalue()
+    else:
+        raise ValueError("Unknown file format")
+    return img
 
 def preprocess_invoice(invoice_dir: str = "database/invoice"):
     invoice_paths = [file for file in glob.glob(f"{invoice_dir}/*") if not file.endswith(".json")]

@@ -8,6 +8,28 @@ import glob
 # Use case 1: how much left in the AOR xxx, what items are allowed, I want to claim xxx, can I do that?
 # Use case 2: I have this invoice, can you help me check whether it fits into AOR xxx ?
 
+from pdf2image import convert_from_path
+from PIL import Image
+import io
+
+def pdf_to_img(pdf_file, first_page=1, last_page=1):
+    # Convert the first page of the PDF to an image
+    images = convert_from_path(pdf_file, first_page=first_page, last_page=last_page)        
+    return images[0]
+
+def file_to_img(file_path):
+    if file_path.endswith(".pdf"):
+        img = pdf_to_img(file_path)
+        
+    elif file_path.endswith((".png", ".jpg", ".jpeg")):
+        with Image.open(file_path) as img_raw:
+            buffered = io.BytesIO()
+            img_raw.save(buffered, format="PNG")
+            img = buffered.getvalue()
+    else:
+        raise ValueError("Unknown file format")
+    return img
+
 @dataclass
 class AOR:
     items: list[str]
@@ -22,6 +44,10 @@ class AOR:
     @property 
     def remaining_budgets(self):
         return self.budgets
+    
+    @property
+    def image(self):
+        return file_to_img(self.pdf_path)
     
     def save(self, aor_dir: str = "database/aor"):
         import os
@@ -79,6 +105,7 @@ class Invoice:
     seller: str
     items: List[str]
     amounts: List[float]
+    description: str = ""
     invoice_text: str = ""
     invoice_path: str = ""
     
@@ -91,6 +118,10 @@ class Invoice:
         if self.invoice_path:
             narrative_str += f"\nInvoice Path: {self.invoice_path}"
         return narrative_str
+    
+    @property
+    def image(self):
+        return file_to_img(self.invoice_path)
 
     @property 
     def total_amount(self):

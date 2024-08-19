@@ -2,14 +2,13 @@
     "no": "01141833",
     "date": "2022-01-12",
     "currency": "Yuan",
-    "seller": "Hongken Trading (Shanghai) Co., Ltd.",
+    "seller": "Shanghai Tengyue International Logistics Co., Ltd.",
     "items": [
-        "Agency service fee",
-        "Inspection fee"
+        "Agency Service Fee"
     ],
     "amounts": [
         700.0
     ],
-    "invoice_text": "Shanghai Value Added Tax Special Invoice\nBuyer: Shanghai Wenjian International Logistics Co., Ltd.\nTaxpayer Identification No.: 913101009729486260K\nAddress and Phone: Room 908, No. 469 Xinjinqiao Road, Shanghai 021-64453190\nBank and Account: China Construction Bank Shanghai Branch 31001512200050030149\nItems: Agency service fee, Inspection fee\nUnit: 1, Unit Price: 700.00, Amount: 700.00, Tax Rate: 6%, Tax: 42.00\nTotal Amount including Tax: 742.00\nIssuer: Zhu Lin",
+    "invoice_text": "Shanghai Value-added Tax Special Invoice\nPurchaser Name: Hongbai Trading (Shanghai) Co., Ltd.\nTax Identification Number: 913100006643329130\nAddress, Telephone: Room 987, Building 799, Yishan Road, Xuhui District, Shanghai City 021-64453190\nBanking Information: China Construction Bank, Shanghai Xuhui Branch 31001512200050030149\n\nDescription of Goods or Services: Agency Service Fee\nSpecification Model: \u2014\u2014\u2014\u2014\nUnit: \u2014\u2014\u2014\u2014\nQuantity: 1\nUnit Price: 700.00\nAmount: 700.00\nTax Rate: 6%\nTax Amount: 42.00\nTotal: \u00a5742.00\n\nIssuer: Zhu Lin\nReviewer: Zhu Zhetong\nRecipient: Guo Hong\n",
     "invoice_path": "database/invoice/invoice_chinese.png"
 }

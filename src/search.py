@@ -3,6 +3,7 @@ from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
 from src.aor import AOR, load_aors, Invoice, load_invoices
+from src.prompt import SYSTEM_PROMPT
 from src.utils import get_oai_response, parse_json_response
 from dataclasses import dataclass, field
 
@@ -153,7 +154,7 @@ def query_rough(aor, query):
     """
     query_prompt = QUERY_TEMPLATE.format(txt=text, query=query)
     
-    response = get_oai_response(query_prompt)
+    response = get_oai_response(query_prompt, system_prompt=SYSTEM_PROMPT)
     
     return response
 
@@ -174,7 +175,7 @@ def query_detail(aor, query):
     """
     query_prompt = QUERY_TEMPLATE.format(txt=text, query=query)
     
-    response = get_oai_response(query_prompt)
+    response = get_oai_response(query_prompt, system_prompt=SYSTEM_PROMPT)
     
     return response
 
@@ -193,7 +194,7 @@ def query_invoice_detail(invoice, query):
     """ 
     query_prompt = QUERY_TEMPLATE.format(txt=text, query=query)
     
-    response = get_oai_response(query_prompt)
+    response = get_oai_response(query_prompt, system_prompt=SYSTEM_PROMPT)
     
     return response
 
@@ -218,6 +219,18 @@ class Memory:
         if len(self.invoice_list)==0:
             return ""
         return self.invoice_list[0].narrative
+        
+    @property
+    def invoice_image(self):
+        if len(self.invoice_list)==0:
+            return ""
+        return self.invoice_list[0].image
+        
+    @property
+    def aor_image(self):
+        if len(self.aor_list)==0:
+            return ""
+        return self.aor_list[0].image
     
     def reset(self, aor_list = [], invoice_list = []):
         self.aor_list = aor_list
@@ -342,6 +355,57 @@ Retrieved AOR: {aor_narrative}
 User query: {user_query}
 """
 
+CONTINUE_INVOICE_SEARCH_PROMPT_NO_AOR = """
+Based on the user's query and the retrieved Invoice which may or may not be relevant, determine which function should be called and provide the appropriate query.
+Output your response as a JSON object with the following structure:
+{{
+    "function_name": "<name of the function to call>",
+    "query": "<query to pass to the function>"
+}}
+
+Available functions:
+1. search_invoice_with_item: Searches for another invoice based on a specific item or keyword. Only use this if current invoice is not relevant.
+2. search_invoice_with_no: Searches for another invoice using its unique identification number. Only use this if current invoice is not relevant.
+3. query_invoice_detail: Performs a detailed query on current invoice, accessing its full text content.
+4. direct_answer: Provide your answer to the query base on current information.
+
+Retrieved Invoice: {invoice_narrative}
+
+User query: {user_query}
+"""
+
+CONTINUE_INVOICE_SEARCH_PROMPT_NO_AOR_NO_INVOICE = """
+Based on the user's query, determine which function should be called and provide the appropriate query.
+Output your response as a JSON object with the following structure:
+{{
+    "function_name": "<name of the function to call>",
+    "query": "<query to pass to the function>"
+}}
+
+Available functions:
+1. search_invoice_with_item: Searches for an invoice based on a specific item or keyword.
+2. search_invoice_with_no: Searches for an invoice using its unique identification number.
+3. direct_answer: Provide your answer to the query base on current information.
+
+User query: {user_query}
+"""
+
+CONTINUE_INVOICE_SEARCH_PROMPT_NO_INVOICE = """
+Based on the user's query, determine which function should be called and provide the appropriate query.
+Output your response as a JSON object with the following structure:
+{{
+    "function_name": "<name of the function to call>",
+    "query": "<query to pass to the function>"
+}}
+
+Available functions:
+1. search_invoice_with_item: Searches for an invoice based on a specific item or keyword.
+2. search_invoice_with_no: Searches for an invoice using its unique identification number.
+3. direct_answer: Provide your answer to the query base on current information.
+
+User query: {user_query}
+"""
+
 CONTINUE_AOR_SEARCH_PROMPT = """
 Based on the user's query and the retrieved AOR and Invoice which may or may not be relevant, determine which function should be called and provide the appropriate query.
 Output your response as a JSON object with the following structure:
@@ -358,6 +422,61 @@ Available functions:
 5. direct_answer: Provide your answer to the query base on current information.
 
 Retrieved Invoice: {invoice_narrative}
+
+User query: {user_query}
+"""
+
+CONTINUE_AOR_SEARCH_PROMPT_NO_INVOICE = """
+Based on the user's query and the retrieved AOR which may or may not be relevant, determine which function should be called and provide the appropriate query.
+Output your response as a JSON object with the following structure:
+{{
+    "function_name": "<name of the function to call>",
+    "query": "<query to pass to the function>"
+}}
+
+Available functions:
+1. search_aor_with_item: Searches for another AOR based on a specific item or keyword. Only use this if current AOR is not relevant.
+2. search_aor_with_no: Searches for another AOR using its unique identification number. Only use this if current AOR is not relevant.
+3. query_detail: Performs a detailed query on current AOR, accessing its full text content.
+4. direct_answer: Provide your answer to the query base on current information.
+
+Retrieved AOR: {aor_narrative}
+
+User query: {user_query}
+"""
+
+
+CONTINUE_AOR_SEARCH_PROMPT_NO_AOR = """
+Based on the user's query and the retrieved Invoice which may or may not be relevant, determine which function should be called and provide the appropriate query.
+Output your response as a JSON object with the following structure:
+{{
+    "function_name": "<name of the function to call>",
+    "query": "<query to pass to the function>"
+}}
+
+Available functions:
+1. search_aor_with_item: Searches for another AOR based on a specific item or keyword.
+2. search_aor_with_no: Searches for another AOR using its unique identification number.
+3. query_invoice_detail: Performs a detailed query on current invoice, accessing its full text content.
+4. direct_answer: Provide your answer to the query base on current information.
+
+Retrieved Invoice: {invoice_narrative}
+
+User query: {user_query}
+"""
+
+CONTINUE_AOR_SEARCH_PROMPT_NO_AOR_NO_INVOICE = """
+Based on the user's query, determine which function should be called and provide the appropriate query.
+Output your response as a JSON object with the following structure:
+{{
+    "function_name": "<name of the function to call>",
+    "query": "<query to pass to the function>"
+}}
+
+Available functions:
+1. search_aor_with_item: Searches for another AOR based on a specific item or keyword.
+2. search_aor_with_no: Searches for another AOR using its unique identification number.
+3. direct_answer: Provide your answer to the query base on current information.
 
 User query: {user_query}
 """
@@ -382,32 +501,50 @@ Retrieved AOR: {aor_narrative}
 User query: {user_query}
 """
 
-def route_query(user_query, memory: Memory, first_query: bool) -> str:
-    """ 
-    Route the query to the appropriate prompt based on the last function called by the agent
-    """
-    aor_searched = "search_aor" in memory.last_call
-    invoice_searched = "search_invoice" in memory.last_call
-    if aor_searched and invoice_searched:
-        return CONTINUE_QUERY_PROMPT.format(
-            aor_narrative=memory.narrative, invoice_narrative=memory.invoice_narrative, user_query=user_query
-        )
-    elif aor_searched and not invoice_searched:
-        return CONTINUE_INVOICE_SEARCH_PROMPT.format(
-            aor_narrative=memory.narrative, invoice_narrative=memory.invoice_narrative, user_query=user_query
-        )
-    elif not aor_searched and invoice_searched:
-        return CONTINUE_AOR_SEARCH_PROMPT.format(
-            aor_narrative=memory.narrative, invoice_narrative=memory.invoice_narrative, user_query=user_query
-        )
-    else:
-        return CONTINUE_SEARCH_PROMPT.format(
-            aor_narrative=memory.narrative, invoice_narrative=memory.invoice_narrative, user_query=user_query
-        )
-        
+CONTINUE_QUERY_PROMPT_NO_INVOICE = """
+Based on the user's query and the retrieved AOR which may or may not be relevant, determine which function should be called and provide the appropriate query.
+Output your response as a JSON object with the following structure:
+{{
+    "function_name": "<name of the function to call>",
+    "query": "<query to pass to the function>"
+}}
+
+Available functions:
+1. query_detail: Performs a detailed query on current AOR, accessing its full text content.
+2. direct_answer: Provide your answer to the query base on current information.
+
+Retrieved AOR: {aor_narrative}
+
+User query: {user_query}
+"""
+
+CONTINUE_QUERY_PROMPT_NO_AOR = """
+Based on the user's query and the retrieved Invoice which may or may not be relevant, determine which function should be called and provide the appropriate query.
+Output your response as a JSON object with the following structure:
+{{
+    "function_name": "<name of the function to call>",
+    "query": "<query to pass to the function>"
+}}
+
+Available functions:
+1. query_invoice_detail: Performs a detailed query on current invoice, accessing its full text content.
+2. direct_answer: Provide your answer to the query base on current information.
+
+Retrieved Invoice: {invoice_narrative}
+
+User query: {user_query}
+"""
 
 DIRECT_ANSWER_PROMPT = """ 
-Base on the retrieved AOR and Invoice, provide the direct answer to the user query
+Based on the user's query and the retrieved Invoice which may or may not be relevant, determine which function should be called and provide the appropriate query.
+Output your response as a JSON object with the following structure:
+{{
+    "function_name": "<name of the function to call>",
+    "query": "<query to pass to the function>"
+}}
+
+Available functions:
+1. direct_answer: Provide your answer to the query base on current information.
 
 Retrieved Invoice: {invoice_narrative}
 
@@ -415,6 +552,61 @@ Retrieved AOR: {aor_narrative}
 
 User query: {user_query}
 """
+
+
+def route_query(user_query, memory: Memory, first_query: bool) -> str:
+    """ 
+    Route the query to the appropriate prompt based on the last function called by the agent
+    """
+    first_query = not memory.last_call
+    aor_searched = "search_aor" in memory.last_call
+    invoice_searched = "search_invoice" in memory.last_call
+    has_aor = memory.narrative != ""
+    has_invoice = memory.invoice_narrative != ""
+    
+    if first_query:
+        return INITIAL_SEARCH_PROMPT.format(
+            aor_narrative=memory.narrative, invoice_narrative=memory.invoice_narrative, user_query=user_query
+        )
+    else:
+        if aor_searched and not invoice_searched:
+            if has_aor and has_invoice:
+                return CONTINUE_INVOICE_SEARCH_PROMPT.format(
+                    aor_narrative=memory.narrative, invoice_narrative=memory.invoice_narrative, user_query=user_query
+                )
+            elif has_aor and not has_invoice:
+                return CONTINUE_INVOICE_SEARCH_PROMPT_NO_INVOICE.format(
+                    aor_narrative=memory.narrative, user_query=user_query
+                )
+            elif not has_aor and has_invoice:
+                return CONTINUE_INVOICE_SEARCH_PROMPT_NO_AOR.format(
+                    invoice_narrative=memory.invoice_narrative, user_query=user_query
+                )
+            else:
+                return CONTINUE_INVOICE_SEARCH_PROMPT_NO_AOR_NO_INVOICE.format(
+                    user_query=user_query
+                )  
+        elif invoice_searched and not aor_searched:
+            if has_invoice and has_aor:
+                return CONTINUE_AOR_SEARCH_PROMPT.format(
+                    aor_narrative=memory.narrative, invoice_narrative=memory.invoice_narrative, user_query=user_query
+                )
+            elif has_invoice and not has_aor:
+                return CONTINUE_AOR_SEARCH_PROMPT_NO_AOR.format(
+                    invoice_narrative=memory.invoice_narrative, user_query=user_query
+                )
+            elif not has_invoice and has_aor:
+                return CONTINUE_AOR_SEARCH_PROMPT_NO_INVOICE.format(
+                    aor_narrative=memory.narrative, user_query=user_query
+                )
+            else:
+                return CONTINUE_AOR_SEARCH_PROMPT_NO_AOR_NO_INVOICE.format(
+                    user_query=user_query
+                )
+        else:
+            return DIRECT_ANSWER_PROMPT.format(
+                invoice_narrative=memory.invoice_narrative, aor_narrative=memory.narrative, user_query=user_query
+            )
 
 
 def query_memory_single(user_query, memory: Memory) -> tuple[str, Memory, bool]:
@@ -429,13 +621,15 @@ def query_memory_single(user_query, memory: Memory) -> tuple[str, Memory, bool]:
     # Call Response 
     call_prompt = route_query(user_query, memory, first_query=True)
 
-    response = get_oai_response(memory.update_user_response(call_prompt, temp=True)) # Shove historical information into the memory (temporarily)
+    response = get_oai_response(memory.update_user_response(call_prompt, temp=True), system_prompt=SYSTEM_PROMPT) # Shove historical information into the memory (temporarily)
     response_dict = parse_json_response(response)
         
     # Extract function name and query
     function_name = response_dict['function_name']
     query = response_dict['query']
     
+    print("Calling Function: ", function_name, " | Query: ", query)
+
     # Call the appropriate function based on the response
     if function_name == "search_aor_with_item":
         search_str = memory.search_aor_with_item(query)
@@ -478,12 +672,14 @@ def query_memory_continue(user_query, memory: Memory) -> tuple[str, Memory, bool
     else:
         call_prompt = INITIAL_SEARCH_PROMPT.format(user_query=user_query)
 
-    response = get_oai_response(memory.update_user_response(call_prompt, temp=True)) # Shove historical information into the memory (temporarily)
+    response = get_oai_response(memory.update_user_response(call_prompt, temp=True), system_prompt=SYSTEM_PROMPT) # Shove historical information into the memory (temporarily)
     response_dict = parse_json_response(response)
         
     # Extract function name and query
     function_name = response_dict['function_name']
     query = response_dict['query']
+    
+    print("Calling Function: ", function_name, " | Query: ", query)
     
     # Call the appropriate function based on the response
     if function_name == "search_aor_with_item":

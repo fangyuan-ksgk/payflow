@@ -1,3 +1,9 @@
+SYSTEM_PROMPT = """You are Admin Agent developed by Temus. You are tasked with answering questions about AORs and invoices. You are given a user query and a set of AOR and invoice information. You are tasked with answering the user query based on the AOR and invoice information.
+
+You are given a user query and a set of AOR and invoice information. You are tasked with answering the user query based on the AOR and invoice information.
+"""
+
+
 PARSE_AOR_PROMPT = """Please analyze the AOR (Authority of Requirement) file and provide the following information in JSON format:
 
 {{
@@ -21,6 +27,7 @@ PARSE_INVOICE_PROMPT = """Please analyze the invoice image and provide the follo
     "seller": "name of the seller", // translate to English if it's not already in English
     "items": ["list of items or services on the invoice"], // translate to English if it's not already in English
     "amounts": [0.0, 0.0, ...],  // list of corresponding amounts for each item
+    "description": "brief description of the invoice", // translate to English if it's not already in English
     "invoice_text": "full text content of the invoice" // translate to English if it's not already in English
 }}
 
