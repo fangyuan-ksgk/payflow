@@ -2,13 +2,14 @@
     "no": "01141833",
     "date": "2022-01-12",
     "currency": "Yuan",
-    "seller": "Shanghai Tengyue International Logistics Co., Ltd.",
+    "seller": "Shanghai Kaiyuan International Logistics Co., Ltd.",
     "items": [
-        "Agency Service Fee"
+        "Agency Service Fee + Miscellaneous Fee"
     ],
     "amounts": [
         700.0
     ],
-    "invoice_text": "Shanghai Value-added Tax Special Invoice\nPurchaser Name: Hongbai Trading (Shanghai) Co., Ltd.\nTax Identification Number: 913100006643329130\nAddress, Telephone: Room 987, Building 799, Yishan Road, Xuhui District, Shanghai City 021-64453190\nBanking Information: China Construction Bank, Shanghai Xuhui Branch 31001512200050030149\n\nDescription of Goods or Services: Agency Service Fee\nSpecification Model: \u2014\u2014\u2014\u2014\nUnit: \u2014\u2014\u2014\u2014\nQuantity: 1\nUnit Price: 700.00\nAmount: 700.00\nTax Rate: 6%\nTax Amount: 42.00\nTotal: \u00a5742.00\n\nIssuer: Zhu Lin\nReviewer: Zhu Zhetong\nRecipient: Guo Hong\n",
+    "description": "Invoice for agency service fee and miscellaneous fee.",
+    "invoice_text": "Invoice No. 01141833. Issued on: 2022-01-12. Buyer: Hongbai Trading (Shanghai) Co., Ltd. Buyer Tax ID: 913100006643329130. Address: Room 908, Building 4, Lane 908, Longfeng Road, Xuhui District, Shanghai. Seller: Shanghai Kaiyuan International Logistics Co., Ltd. Seller Tax ID: 913101097294862660K. Description: Agency Service Fee + Miscellaneous Fee. Unit Price: \u00a5700.00. Total Amount: \u00a5700.00. Tax Rate: 6%. Tax Amount: \u00a542.00. Total Amount with Tax: \u00a5742.00.",
     "invoice_path": "database/invoice/invoice_chinese.png"
 }
