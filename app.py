@@ -7,12 +7,14 @@ if 'agent' not in st.session_state:
     st.session_state.agent = RagAgent()
 
 # Logo Image Path
-logo_path = "./assets/logo-light.png"
-agent_icon_path = "./assets/flow-agent.png"
+logo_path = "./assets/red-icon.png"
+agent_icon_path = "./assets/icon-2.jpeg"
 user_icon_path = "./assets/user-icon.png"
+document_icon_path = "./assets/document-icon.png"
 
 agent_icon = Image.open(agent_icon_path)
 user_icon = Image.open(user_icon_path)
+docu_icon = Image.open(document_icon_path)
 
 def main():
     st.set_page_config(layout="wide")
@@ -25,9 +27,14 @@ def main():
     col1, col2 = st.columns([1, 4])  # Adjusted column ratio to move content left
     with col1:
         logo = Image.open(logo_path)
-        st.image(logo, width=240)  # Slightly reduced logo size
-    with col2:
-        st.title("Your personal finance assistant")
+        st.image(logo, width=280, use_column_width=True)  # Use column width for responsive sizing
+    # with col2:
+    #     st.markdown(
+    #         "<div style='display: flex; flex-direction: column; justify-content: flex-end; height: 100%;'>"
+    #         "<h1 style='font-size: 32px; margin: 0; padding-bottom: 20px;'>Your personal finance assistant</h1>"
+    #         "</div>",
+    #         unsafe_allow_html=True
+    #     )
     # st.markdown("---")  # Draws a horizontal line below the title and image
 
     # Create two columns: one for the chat interface and one for the sidebar content
@@ -66,6 +73,7 @@ def main():
         st.session_state.invoice_narrative = st.session_state.agent.memory.invoice_narrative
 
     with sidebar_col:
+        # st.image(docu_icon, width=80)  # Adjusted width to fit the sidebar
         # Sidebar for invoice and AOR images
         if st.session_state.agent.memory.invoice_image:
             st.subheader("Retrieved Invoice")
@@ -73,8 +81,8 @@ def main():
             st.markdown(st.session_state.invoice_narrative)
 
         # Ensure AOR section is always displayed, regardless of invoice presence
-        st.subheader("Retrieved AOR")
         if st.session_state.agent.memory.aor_image:
+            st.subheader("Retrieved AOR")
             st.image(st.session_state.agent.memory.aor_image, width=300)  # Adjust width as needed
             st.markdown(st.session_state.agent.memory.narrative)
 
