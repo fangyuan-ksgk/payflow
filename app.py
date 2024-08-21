@@ -8,7 +8,8 @@ if 'agent' not in st.session_state:
 
 # Logo Image Path
 # logo_path = "./assets/red-icon.png"
-logo_path = "./assets/Pay-Flow-Blue.png"
+# logo_path = "./assets/Pay-Flow-Blue.png"
+logo_path = "./assets/light-blue-logo-space.png"
 # agent_icon_path = "./assets/icon-2.jpeg"
 agent_icon_path = "./assets/Assistant.png"
 # user_icon_path = "./assets/user-icon.png"
