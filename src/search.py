@@ -410,6 +410,7 @@ Available functions:
 1. search_invoice_with_item: Searches for an invoice based on a specific item or keyword.
 2. search_invoice_with_no: Searches for an invoice using its unique identification number.
 3. direct_answer: Provide your answer to the query base on current information.
+4. query_detail: Performs a detailed query on current AOR, accessing its full text content to answer with confidence.
 
 Retrieved AOR: {aor_narrative}
 
@@ -531,24 +532,29 @@ def route_query(user_query, memory: Memory, first_query: bool) -> str:
     has_invoice = memory.invoice_narrative != ""
     
     if first_query:
+        print("**** Route to First Query ****")
         return INITIAL_SEARCH_PROMPT.format(
             aor_narrative=memory.narrative, invoice_narrative=memory.invoice_narrative, user_query=user_query
         )
     else:
         if aor_searched and not invoice_searched:
             if has_aor and has_invoice:
+                print("**** Route to Invoice Search ****")
                 return CONTINUE_INVOICE_SEARCH_PROMPT.format(
                     aor_narrative=memory.narrative, invoice_narrative=memory.invoice_narrative, user_query=user_query
                 )
             elif has_aor and not has_invoice:
+                print("**** Route to Invoice Search No Invoice ****")
                 return CONTINUE_INVOICE_SEARCH_PROMPT_NO_INVOICE.format(
                     aor_narrative=memory.narrative, user_query=user_query
                 )
             elif not has_aor and has_invoice:
+                print("**** Route to Invoice Search No AOR ****")
                 return CONTINUE_INVOICE_SEARCH_PROMPT_NO_AOR.format(
                     invoice_narrative=memory.invoice_narrative, user_query=user_query
                 )
             else:
+                print("**** Route to Invoice Search No AOR No Invoice ****")
                 return CONTINUE_INVOICE_SEARCH_PROMPT_NO_AOR_NO_INVOICE.format(
                     user_query=user_query
                 )  
@@ -632,10 +638,10 @@ def query_memory_single(user_query, memory: Memory) -> tuple[str, Memory, bool]:
         )
         response_str = get_oai_response(memory.update_user_response(direct_prompt, temp=True), system_prompt=SYSTEM_PROMPT)
         thought_str, answer_str = parse_thought_answer(response_str)
-        print_str = f"""Question: {direct_prompt}
-        Thought: {thought_str}
-        Answer: {answer_str}"""        
-        print(print_str)
+        # print_str = f"""Question: {direct_prompt}
+        # Thought: {thought_str}
+        # Answer: {answer_str}"""        
+        # print(print_str)
         return answer_str, memory, True
 
 def query_memory(query, memory: Memory):
