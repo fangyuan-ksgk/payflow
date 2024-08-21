@@ -560,22 +560,27 @@ def route_query(user_query, memory: Memory, first_query: bool) -> str:
                 )  
         elif invoice_searched and not aor_searched:
             if has_invoice and has_aor:
+                print("**** Route to AOR Search ****")
                 return CONTINUE_AOR_SEARCH_PROMPT.format(
                     aor_narrative=memory.narrative, invoice_narrative=memory.invoice_narrative, user_query=user_query
                 )
             elif has_invoice and not has_aor:
+                print("**** Route to AOR Search No AOR ****")
                 return CONTINUE_AOR_SEARCH_PROMPT_NO_AOR.format(
                     invoice_narrative=memory.invoice_narrative, user_query=user_query
                 )
             elif not has_invoice and has_aor:
+                print("**** Route to AOR Search No Invoice ****")
                 return CONTINUE_AOR_SEARCH_PROMPT_NO_INVOICE.format(
                     aor_narrative=memory.narrative, user_query=user_query
                 )
             else:
+                print("**** Route to AOR Search No Invoice No AOR ****")
                 return CONTINUE_AOR_SEARCH_PROMPT_NO_AOR_NO_INVOICE.format(
                     user_query=user_query
                 )
         else:
+            print("**** Route to Direct Answer ****")
             return DIRECT_ANSWER_PROMPT.format(
                 invoice_narrative=memory.invoice_narrative, aor_narrative=memory.narrative, user_query=user_query
             )
