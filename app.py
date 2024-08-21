@@ -7,9 +7,12 @@ if 'agent' not in st.session_state:
     st.session_state.agent = RagAgent()
 
 # Logo Image Path
-logo_path = "./assets/red-icon.png"
-agent_icon_path = "./assets/icon-2.jpeg"
-user_icon_path = "./assets/user-icon.png"
+# logo_path = "./assets/red-icon.png"
+logo_path = "./assets/Pay-Flow-Blue.png"
+# agent_icon_path = "./assets/icon-2.jpeg"
+agent_icon_path = "./assets/Assistant.png"
+# user_icon_path = "./assets/user-icon.png"
+user_icon_path = "./assets/User.png"
 document_icon_path = "./assets/document-icon.png"
 
 agent_icon = Image.open(agent_icon_path)
