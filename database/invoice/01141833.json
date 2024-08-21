@@ -10,6 +10,6 @@
         700.0
     ],
     "description": "Invoice for agency service fee and miscellaneous fee.",
-    "invoice_text": "Invoice No. 01141833. Issued on: 2022-01-12. Buyer: Hongbai Trading (Shanghai) Co., Ltd. Buyer Tax ID: 913100006643329130. Address: Room 908, Building 4, Lane 908, Longfeng Road, Xuhui District, Shanghai. Seller: Shanghai Jiahe International Logistics Co., Ltd. Seller Tax ID: 913101097294862660K. Description: Agency Service Fee + Miscellaneous Fee. Unit Price: \u00a5700.00. Total Amount: \u00a5700.00. Tax Rate: 6%. Tax Amount: \u00a542.00. Total Amount with Tax: \u00a5742.00.",
+    "invoice_text": "Invoice No. 01141833. Issued on: 2022-01-12. Buyer: Hongbai Trading (Shanghai) Co., Ltd. Buyer Tax ID: 913100006643329130. Address: Room 908, Building 4, Lane 908, Longfeng Road, Xuhui District, Shanghai. Seller: Shanghai Jiahe International Logistics Co., Ltd. Seller Address: 14G, No. 908, Dongdaming Road, Shanghai. Seller Tax ID: 913101097294862660K. Description: Agency Service Fee + Miscellaneous Fee. Unit Price: \u00a5700.00. Total Amount: \u00a5700.00. Tax Rate: 6%. Tax Amount: \u00a542.00. Total Amount with Tax: \u00a5742.00.",
     "invoice_path": "database/invoice/invoice_chinese.png"
 }
